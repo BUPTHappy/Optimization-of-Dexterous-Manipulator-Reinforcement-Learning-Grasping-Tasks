@@ -49,7 +49,7 @@ def get_args():
     parser.add_argument('--noise', action='store_true', help='Add noise to inputs and outputs')
     # Inputs
     parser.add_argument('--inputs', type=str, nargs='+', default='proprio', help='List type. Choose from [proprio, loc, rgb, depth, aff]')
-    parser.add_argument('--cameras', type=str, nargs='*', default='egocentric', help='List type. Choose from [first_person, left, right, egocentric]')
+    parser.add_argument('--cameras', type=str, nargs='*', default=['egocentric'], help='List type. Choose from [first_person, left, right, egocentric]')
     parser.add_argument('--img_res', type=int, default=128, help='Resolution of input img to cnn')
     # Rewards
     parser.add_argument('--rewards', nargs='*', action=ParseReward, default='grasp:1', help='Custom type, set as reward:weight. Choose reward from [grasp, com, aff]')

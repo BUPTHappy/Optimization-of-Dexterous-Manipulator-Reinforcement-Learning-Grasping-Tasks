@@ -32,6 +32,8 @@ class GraffV0(mujoco_env.MujocoEnv, utils.EzPickle):
         self.target_pos = [0.0, 0.0, 0.2]
         self.device_id = device_id
         self.process_id = process_id
+        self.step_count = 0  # 添加步数计数器
+        self.max_episode_steps = 200  # 设置最大episode步数
         curr_dir = dirname(abspath(__file__))
         if grasp_attrs_dict['dataset'] == 'contactdb':
             model_path = join(curr_dir, 'assets/contactdb/env_xmls/%s_vhacd.xml' % self.obj_name)
@@ -204,7 +206,7 @@ class GraffV0(mujoco_env.MujocoEnv, utils.EzPickle):
 
     def get_palm_orientation_reward(self):
         """
-        计算虎口朝上的奖励: 确保手掌法向量指向物体
+        计算虎口朝上的奖励: 确保手掌以正确的姿态抓取物体
         返回: 0-1之间的奖励值，1表示完美对齐
         """
         # 获取手掌位置和旋转矩阵
@@ -214,25 +216,51 @@ class GraffV0(mujoco_env.MujocoEnv, utils.EzPickle):
         # 获取物体位置
         obj_pos = self.data.body_xpos[self.obj_bid].ravel()
         
-        # 手掌法向量 (z轴方向，即虎口方向)
-        palm_normal = palm_rotmat[:, 2]  # z轴代表手掌法向量
-        
         # 手掌到物体的方向向量
         palm_to_obj = obj_pos - palm_pos
-        if np.linalg.norm(palm_to_obj) > 0:
-            palm_to_obj_unit = palm_to_obj / np.linalg.norm(palm_to_obj)
-        else:
+        if np.linalg.norm(palm_to_obj) < 1e-6:
             return 0.0
+        palm_to_obj_unit = palm_to_obj / np.linalg.norm(palm_to_obj)
         
-        # 计算法向量与手掌到物体方向的夹角余弦值
-        # 余弦值越接近1，说明虎口越正对物体
-        cos_angle = np.dot(palm_normal, palm_to_obj_unit)
+        # 获取手掌坐标系的三个轴
+        palm_x = palm_rotmat[:, 0]  # 手掌x轴 (通常指向拇指方向)
+        palm_y = palm_rotmat[:, 1]  # 手掌y轴 (通常指向手指方向)  
+        palm_z = palm_rotmat[:, 2]  # 手掌z轴 (通常垂直手掌向上)
         
-        # 将余弦值转换为奖励 (范围0-1)
-        # 使用平滑的奖励函数，当夹角小于45度时给予较高奖励
-        orientation_reward = max(0.0, cos_angle)
+        # 世界坐标系的向上方向
+        world_up = np.array([0, 0, 1])
         
-        return orientation_reward
+        # 奖励组件1: 手掌z轴应该大致向上 (虎口朝上的基本要求)
+        up_alignment = np.dot(palm_z, world_up)
+        up_reward = max(0.0, up_alignment)  # 0到1之间
+        
+        # 奖励组件2: 手掌y轴应该指向物体 (手指朝向物体)
+        finger_alignment = np.dot(palm_y, palm_to_obj_unit)
+        finger_reward = max(0.0, finger_alignment)  # 0到1之间
+        
+        # 奖励组件3: 避免手掌过度倾斜 (roll角度约束)
+        # 计算手掌在水平面的投影，确保不会侧翻
+        palm_z_horizontal = np.array([palm_z[0], palm_z[1], 0])
+        if np.linalg.norm(palm_z_horizontal) > 1e-6:
+            palm_z_horizontal = palm_z_horizontal / np.linalg.norm(palm_z_horizontal)
+            # 手掌x轴在水平面的投影不应该与z轴的水平投影平行（避免侧翻）
+            palm_x_horizontal = np.array([palm_x[0], palm_x[1], 0])
+            if np.linalg.norm(palm_x_horizontal) > 1e-6:
+                palm_x_horizontal = palm_x_horizontal / np.linalg.norm(palm_x_horizontal)
+                roll_alignment = abs(np.dot(palm_x_horizontal, palm_z_horizontal))
+                roll_reward = 1.0 - roll_alignment  # 越不平行越好
+            else:
+                roll_reward = 1.0
+        else:
+            roll_reward = 1.0
+        
+        # 综合奖励：加权平均
+        # up_reward权重最高，因为虎口朝上是最重要的
+        # finger_reward次之，确保手指指向物体
+        # roll_reward最低，避免过度约束
+        total_reward = 0.5 * up_reward + 0.3 * finger_reward + 0.2 * roll_reward
+        
+        return np.clip(total_reward, 0.0, 1.0)
 
     #执行机器人的一个动作并给出反馈
     def step(self, a):
@@ -245,6 +273,7 @@ class GraffV0(mujoco_env.MujocoEnv, utils.EzPickle):
             a = a  # only for the initialization phase
 
         self.do_simulation(a, self.frame_skip)   # 在仿真中执行动作
+        self.step_count += 1  # 增加步数计数
         ob = self.get_obs()  # 获取新的观察 
         obj_pos = self.data.body_xpos[self.obj_bid].ravel()
         palm_pos = self.data.site_xpos[self.S_grasp_sid].ravel()
@@ -290,10 +319,23 @@ class GraffV0(mujoco_env.MujocoEnv, utils.EzPickle):
         
         # total reward
         reward_tot = sum(rewards.values())
+        
+        # Check for episode termination conditions
+        done = False
+        # Episode ends if maximum steps reached
+        if self.step_count >= self.max_episode_steps:
+            done = True
+        # Episode ends if object falls off the table (z < some threshold)
+        elif obj_pos[2] < -0.1:  # Object fell below table
+            done = True
+        # Episode ends if hand moves too far from reasonable workspace
+        elif np.linalg.norm(palm_pos) > 1.0:  # Hand moved too far from origin
+            done = True
+        
         info = dict(obj_lift=obj_lift,
                     obj_grab=obj_grab,
                     reward=reward_tot)
-        return ob, reward_tot, False, info
+        return ob, reward_tot, done, info
 
     #获取视觉信息
     def _get_cnn_obs(self, cam):
@@ -407,6 +449,7 @@ class GraffV0(mujoco_env.MujocoEnv, utils.EzPickle):
 
     #重置模型状态
     def reset_model(self, angle=None):
+        self.step_count = 0  # 重置步数计数器
         qp = self.init_qpos.copy()
         qv = self.init_qvel.copy()
         self.set_state(qp, qv)

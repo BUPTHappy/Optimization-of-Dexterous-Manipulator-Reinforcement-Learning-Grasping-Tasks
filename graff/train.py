@@ -74,7 +74,7 @@ def main():
                         'debug': args.debug}
 
     envs = make_vec_envs(args.env_name, args.seed, args.num_processes,
-                         args.gamma, log_dir, device, int(args.gpu_env), False, dataset=args.dataset, 
+                         args.gamma, log_dir, device, int(args.gpu_env), True, dataset=args.dataset, 
                          object=args.obj, grasp_attrs_dict=grasp_attrs_dict)
 
     if args.load_model == 0: #从头开始训练 

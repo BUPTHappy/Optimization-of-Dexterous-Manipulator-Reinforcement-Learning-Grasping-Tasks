@@ -27,7 +27,7 @@ class Monitor(Wrapper):
         self.rewards = None
         self.obj_lift = None
         self.obj_grab = None
-        self.needs_reset = True
+        self.needs_reset = False  # Changed from True to False to allow immediate stepping
         self.episode_rewards = []
         self.episode_obj_lift = []
         self.episode_obj_grab = []
@@ -54,8 +54,11 @@ class Monitor(Wrapper):
         self.needs_reset = False
 
     def step(self, action):
-        if self.needs_reset:
-            raise RuntimeError("Tried to step environment that needs reset")
+        # Initialize lists if they haven't been initialized yet
+        if self.rewards is None:
+            self.rewards = []
+            self.obj_lift = []
+            self.obj_grab = []
         ob, rew, done, info = self.env.step(action)
         self.update(ob, rew, done, info)
         return (ob, rew, done, info)

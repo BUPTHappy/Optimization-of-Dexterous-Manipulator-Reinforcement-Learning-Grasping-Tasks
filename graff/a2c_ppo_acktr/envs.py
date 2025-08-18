@@ -17,10 +17,10 @@ from baselines.common.vec_env.vec_normalize import \
 def make_env(env_id, seed, rank, log_dir, allow_early_resets, object, device_id, **kwargs):
     def _thunk():
         if env_id.startswith("graff"):
-            from envs.mj_envs.utils import tmp
-            from gym import Wrapper
+            # Import the environment to register it with gym
+            import envs
             env = gym.make(env_id, object=object, device_id=device_id, process_id=rank, **kwargs)
-            env = Wrapper(env)
+            # Remove the unnecessary Wrapper that was causing reset issues
             # from envs.mj_envs.utils.gym_env import GymEnv
             # env = GymEnv(env_id, object=object, device_id=rank,  **kwargs)
         else:
