@@ -12,7 +12,7 @@ import numpy as np
 import quaternion as qt
 from pyquaternion import Quaternion
 from envs.mj_envs.utils.quat_utils import *
-from gym import utils
+from gym import utils  #强化学习的标准接口
 from envs.mj_envs.utils import mujoco_env
 # from gym.envs.mujoco import mujoco_env
 from gym.utils import seeding
@@ -21,6 +21,7 @@ import json
 import cv2
 
 class GraffV0(mujoco_env.MujocoEnv, utils.EzPickle):
+    #初始化实验环境（机械手+目标物体+桌子+摄像头等）
     def __init__(self, object, device_id=0, process_id=0, grasp_attrs_dict=None):
 
         self.grasp_attrs_dict = grasp_attrs_dict
@@ -50,7 +51,7 @@ class GraffV0(mujoco_env.MujocoEnv, utils.EzPickle):
         self.viewer = None
         self._viewers = {}
 
-        if self.grasp_attrs_dict['policy'] in ['cnn-mlp']:
+        if self.grasp_attrs_dict['policy'] in ['cnn-mlp']: #要"看"东西来学习，就需要设置虚拟摄像头
             self.frame_size = (self.grasp_attrs_dict['img_res'], self.grasp_attrs_dict['img_res'])
             self.imagenet_mean = [0.485, 0.456, 0.406]
             self.imagenet_std = [0.229, 0.224, 0.225]
@@ -60,7 +61,7 @@ class GraffV0(mujoco_env.MujocoEnv, utils.EzPickle):
                 self.tmp = 0
                 os.makedirs('images/%s'%str(self.process_id), exist_ok=True)
 
-        # load contacts
+        # load contacts：读取"最佳抓取点"的数据
         if grasp_attrs_dict['dataset'] == 'contactdb':
             self.contact_json = join(curr_dir, 'assets/contactdb/contacts/%s.json'%self.obj_name)
             with open(self.contact_json, 'r') as f:
@@ -126,11 +127,12 @@ class GraffV0(mujoco_env.MujocoEnv, utils.EzPickle):
         functions.mj_setConst(self.sim.model, self.sim.data)
 
 
+    #设置随机种子
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
-
+    #选择最重要的抓取点（k个）
     def get_fps(self, geom_indices, contact_indices, K):
 
         def get_verts(geom_indices, contact_indices):
@@ -162,7 +164,7 @@ class GraffV0(mujoco_env.MujocoEnv, utils.EzPickle):
         farthest_indices = [contact_indices[ele] for ele in indices]
         return farthest_geoms, farthest_indices
 
-
+    #计算最佳获取点的坐标
     def get_multicontact_verts(self, verbose=False):
         body_xpos = self.data.body_xpos[self.obj_bid]
         body_xquat = self.data.body_xquat[self.obj_bid].ravel()
@@ -180,7 +182,7 @@ class GraffV0(mujoco_env.MujocoEnv, utils.EzPickle):
             print('multicontact: ', contact_verts)
         return contact_verts
 
-
+    #获取机器人手上各个传感器的3D位置
     def get_multihand_pos(self, sensor_names, verbose=False):
         palm_pos = self.data.site_xpos[self.S_grasp_sid].ravel()
         touch_pos = []
@@ -193,30 +195,62 @@ class GraffV0(mujoco_env.MujocoEnv, utils.EzPickle):
             print('touch sensors pos: ', touch_pos)
         return touch_pos
 
-
+    #计算两个点集之间的chamfer距离
     def chamfer_dist(self, set1, set2):
         set1to2 = [np.min(np.linalg.norm(pt-set2, axis=1)) for pt in set1]
         set2to1 = [np.min(np.linalg.norm(pt-set1, axis=1)) for pt in set2]
         chamfer_dist = (np.mean(set1to2) + np.mean(set2to1)) / 2.
         return chamfer_dist
 
+    def get_palm_orientation_reward(self):
+        """
+        计算虎口朝上的奖励: 确保手掌法向量指向物体
+        返回: 0-1之间的奖励值，1表示完美对齐
+        """
+        # 获取手掌位置和旋转矩阵
+        palm_pos = self.data.site_xpos[self.S_grasp_sid].ravel()
+        palm_rotmat = self.data.site_xmat[self.S_grasp_sid].reshape(3, 3)
+        
+        # 获取物体位置
+        obj_pos = self.data.body_xpos[self.obj_bid].ravel()
+        
+        # 手掌法向量 (z轴方向，即虎口方向)
+        palm_normal = palm_rotmat[:, 2]  # z轴代表手掌法向量
+        
+        # 手掌到物体的方向向量
+        palm_to_obj = obj_pos - palm_pos
+        if np.linalg.norm(palm_to_obj) > 0:
+            palm_to_obj_unit = palm_to_obj / np.linalg.norm(palm_to_obj)
+        else:
+            return 0.0
+        
+        # 计算法向量与手掌到物体方向的夹角余弦值
+        # 余弦值越接近1，说明虎口越正对物体
+        cos_angle = np.dot(palm_normal, palm_to_obj_unit)
+        
+        # 将余弦值转换为奖励 (范围0-1)
+        # 使用平滑的奖励函数，当夹角小于45度时给予较高奖励
+        orientation_reward = max(0.0, cos_angle)
+        
+        return orientation_reward
 
+    #执行机器人的一个动作并给出反馈
     def step(self, a):
         if self.grasp_attrs_dict['noise']:  # actuation noise
             a = self._gaussian_noise(a, mean=0, std=0.01)
-        a = np.clip(a, -1.0, 1.0)
+        a = np.clip(a, -1.0, 1.0)  # 限制动作范围
         try:
             a = self.act_mid + a * self.act_rng  # mean center and scale
         except:
             a = a  # only for the initialization phase
 
-        self.do_simulation(a, self.frame_skip)
-        ob = self.get_obs()
+        self.do_simulation(a, self.frame_skip)   # 在仿真中执行动作
+        ob = self.get_obs()  # 获取新的观察 
         obj_pos = self.data.body_xpos[self.obj_bid].ravel()
         palm_pos = self.data.site_xpos[self.S_grasp_sid].ravel()
 
         rewards = {}
-        for reward in ['grasp', 'com', 'aff']:
+        for reward in ['grasp', 'com', 'aff', 'palm_orientation']:
             rewards[reward] = 0.0
 
         # distance reward
@@ -249,6 +283,11 @@ class GraffV0(mujoco_env.MujocoEnv, utils.EzPickle):
         if 'grasp' in self.rewards:
             rewards['grasp'] = self.rewards['grasp']*int(obj_grab)
         
+        # palm orientation reward - 虎口朝上约束
+        if 'palm_orientation' in self.rewards.keys():
+            orientation_reward = self.get_palm_orientation_reward()
+            rewards['palm_orientation'] = self.rewards['palm_orientation'] * orientation_reward
+        
         # total reward
         reward_tot = sum(rewards.values())
         info = dict(obj_lift=obj_lift,
@@ -256,7 +295,7 @@ class GraffV0(mujoco_env.MujocoEnv, utils.EzPickle):
                     reward=reward_tot)
         return ob, reward_tot, False, info
 
-
+    #获取视觉信息
     def _get_cnn_obs(self, cam):
         rgbd_frame = self.sim.render(width=self.frame_size[0], height=self.frame_size[1],
                                      mode='offscreen', camera_name=cam,
@@ -310,9 +349,9 @@ class GraffV0(mujoco_env.MujocoEnv, utils.EzPickle):
                     cv2.imwrite('images/%s/%s/%d_aff.png' % (str(self.process_id), cam, self.tmp), cnn_inp['aff'])
                 except Exception as e:
                     pass
-        return cnn_inp_concat
+        return cnn_inp_concat #RGB图像，深度图，把最佳抓取点标记成绿色
 
-
+    #获取机器人本体感觉
     def _get_mlp_obs(self):
         mlp_inp = {}
         # agent proprioception
@@ -343,7 +382,7 @@ class GraffV0(mujoco_env.MujocoEnv, utils.EzPickle):
                 dist = palm_pos - obj_pos
             mlp_inp['loc'] = dist
         mlp_inp_concat = np.concatenate([item for key,item in mlp_inp.items()]).astype(np.float32)
-        return mlp_inp_concat
+        return mlp_inp_concat #关节位置和速度，手和物体的相对位置，手指和最佳抓取点的关系
 
 
     # additive gaussian noise
@@ -366,7 +405,7 @@ class GraffV0(mujoco_env.MujocoEnv, utils.EzPickle):
         else:
             raise NotImplementedError
 
-
+    #重置模型状态
     def reset_model(self, angle=None):
         qp = self.init_qpos.copy()
         qv = self.init_qvel.copy()
