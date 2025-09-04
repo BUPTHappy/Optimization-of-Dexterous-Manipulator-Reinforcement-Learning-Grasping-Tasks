@@ -1,41 +1,58 @@
 #!/bin/bash
 
-expdir=./expts      # path to folder with model checkpoints
-gpu_model=0         # gpu to use for model
-gpu_env=0           # gpu to use for env
-seed=1              # seed to use
+expdir=./expts      # 实验目录
+gpu_model=0         # 模型使用的GPU
+gpu_env=0           # 环境使用的GPU  
+seed=1              # 随机种子
 
-# Check if CUDA is available
-echo "Checking CUDA availability..."
-python -c "import torch; print('CUDA available:', torch.cuda.is_available()); print('CUDA device count:', torch.cuda.device_count())"
+# 检查CUDA可用性
+echo "检查CUDA可用性..."
+python -c "import torch; print('CUDA可用:', torch.cuda.is_available()); print('CUDA设备数量:', torch.cuda.device_count())"
 
-# graff with palm orientation constraint - minimal changes from original
-expname=graff_palm_seed${seed}; expdir=${expdir}; 
+# 检查预训练模型是否存在
+if [ ! -f "./expts/graff_trained/models/best.pt" ]; then
+    echo "错误: 预训练模型 ./expts/graff_trained/models/best.pt 不存在!"
+    exit 1
+fi
+
+echo "找到预训练模型: ./expts/graff_trained/models/best.pt"
+
+# 继续训练配置 - 专门强化虎口朝上约束
+expname=graff_palm_enhanced_seed${seed}
+expdir=${expdir}
+
 screen -dmS $expname bash -c "
     export CUDA_VISIBLE_DEVICES=${gpu_model}
     cd graff
-    mkdir $expdir/$expname; mkdir $expdir/$expname/logs; 
-    echo 'CUDA_VISIBLE_DEVICES set to: '${gpu_model}
-    echo 'Starting training with GPU...'
+    mkdir -p $expdir/$expname/logs
+    mkdir -p $expdir/$expname/models
+    
+    # 复制预训练模型，重命名为1.pt（这样load_model 1就能加载它）
+    cp ./expts/graff_trained/models/best.pt $expdir/$expname/models/1.pt
+    
+    echo 'CUDA_VISIBLE_DEVICES设置为: '${gpu_model}
+    echo '开始从预训练模型继续训练，强化虎口朝上约束...'
+    echo '预训练模型已复制到: $expdir/$expname/models/1.pt'
+    
     python train.py \
     --exp $expdir/$expname \
     --env-name 'graff-v0' \
     --use-gae \
-    --log-interval 10 \
-    --save-interval 100 \
-    --num-steps 2000 \
-    --num-processes 16 \
-    --lr 5e-5 \
-    --entropy-coef 0.001 \
+    --log-interval 5 \
+    --save-interval 25 \
+    --num-steps 800 \
+    --num-processes 12 \
+    --lr 2e-5 \
+    --entropy-coef 0.003 \
     --value-loss-coef 0.5 \
-    --ppo-epoch 4 \
-    --num-mini-batch 20 \
+    --ppo-epoch 3 \
+    --num-mini-batch 8 \
     --gamma 0.99 \
     --gae-lambda 0.95 \
-    --num-env-steps 60000000 \
+    --num-env-steps 2000000 \
     --use-proper-time-limits \
     --obj pan \
-    --rewards grasp:5 aff:1 palm_orientation:2.0 \
+    --rewards grasp:5 aff:1 palm_orientation:8.0 \
     --obj_mass 0.8 \
     --obj_rot \
     --policy cnn-mlp \
@@ -44,4 +61,9 @@ screen -dmS $expname bash -c "
     --inputs proprio loc rgb depth aff \
     --seed ${seed} \
     --gpu-model ${gpu_model} \
-    --gpu-env ${gpu_env} |& tee $expdir/$expname/logs/train_log.txt"
+    --gpu-env ${gpu_env} \
+    --load_model 1 |& tee $expdir/$expname/logs/train_log.txt
+    
+    echo '训练完成!'
+"
+

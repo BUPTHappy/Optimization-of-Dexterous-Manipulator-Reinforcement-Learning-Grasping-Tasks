@@ -17,3 +17,4 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+*.mp4
