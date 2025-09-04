@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Demo script for palm orientation grasping
+# 改进的演示脚本 - 使用改进后的模型
 obj=pan
 gpu=0
 
@@ -8,11 +8,11 @@ echo "obj: ${obj}"
 echo "GPU: ${gpu}"
 
 python evaluate.py \
-    --exp expts/graff_palm_seed1/ \
+    --exp expts/graff_palm_improved_seed1/ \
     --env-name graff-v0 \
     --obj ${obj} \
-    --rewards grasp:5 aff:1 palm_orientation:2.0 \
-    --obj_mass 0.8 \
+    --rewards grasp:10 aff:2 palm_orientation:5.0 \
+    --obj_mass 0.5 \
     --obj_rot \
     --policy cnn-mlp \
     --cnn_arch custom \
