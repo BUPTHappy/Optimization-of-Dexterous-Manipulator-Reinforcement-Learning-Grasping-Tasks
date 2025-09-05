@@ -1,0 +1,216 @@
+2025-09-05 20:02:19.243536: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+Logging to /tmp/openai-2025-09-05-20-02-20-931294
+Creating dummy env object to get spaces
+/root/miniconda3/envs/graff/lib/python3.10/site-packages/gym/logger.py:30: UserWarning: [33mWARN: Box bound precision lowered by casting to float32[0m
+  warnings.warn(colorize('%s: %s'%('WARN', msg % args), 'yellow'))
+Observation Space:  Dict(mlp:Box(600,), egocentric:Box(128, 128, 5))
+img_keys:  ['egocentric']
+/root/miniconda3/envs/graff/lib/python3.10/site-packages/torch/serialization.py:868: SourceChangeWarning: source code of class 'a2c_ppo_acktr.model.Policy' has changed. you can retrieve the original source code by accessing the object's source attribute or set `torch.nn.Module.dump_patches = True` and use the patch tool to revert the changes.
+  warnings.warn(msg, SourceChangeWarning)
+/root/miniconda3/envs/graff/lib/python3.10/site-packages/torch/serialization.py:868: SourceChangeWarning: source code of class 'a2c_ppo_acktr.model.CNNMLPBase' has changed. you can retrieve the original source code by accessing the object's source attribute or set `torch.nn.Module.dump_patches = True` and use the patch tool to revert the changes.
+  warnings.warn(msg, SourceChangeWarning)
+/root/miniconda3/envs/graff/lib/python3.10/site-packages/torch/serialization.py:868: SourceChangeWarning: source code of class 'torch.nn.modules.container.Sequential' has changed. you can retrieve the original source code by accessing the object's source attribute or set `torch.nn.Module.dump_patches = True` and use the patch tool to revert the changes.
+  warnings.warn(msg, SourceChangeWarning)
+/root/miniconda3/envs/graff/lib/python3.10/site-packages/torch/serialization.py:868: SourceChangeWarning: source code of class 'torch.nn.modules.linear.Linear' has changed. you can retrieve the original source code by accessing the object's source attribute or set `torch.nn.Module.dump_patches = True` and use the patch tool to revert the changes.
+  warnings.warn(msg, SourceChangeWarning)
+/root/miniconda3/envs/graff/lib/python3.10/site-packages/torch/serialization.py:868: SourceChangeWarning: source code of class 'torch.nn.modules.activation.Tanh' has changed. you can retrieve the original source code by accessing the object's source attribute or set `torch.nn.Module.dump_patches = True` and use the patch tool to revert the changes.
+  warnings.warn(msg, SourceChangeWarning)
+/root/miniconda3/envs/graff/lib/python3.10/site-packages/torch/serialization.py:868: SourceChangeWarning: source code of class 'torch.nn.modules.conv.Conv2d' has changed. you can retrieve the original source code by accessing the object's source attribute or set `torch.nn.Module.dump_patches = True` and use the patch tool to revert the changes.
+  warnings.warn(msg, SourceChangeWarning)
+/root/miniconda3/envs/graff/lib/python3.10/site-packages/torch/serialization.py:868: SourceChangeWarning: source code of class 'torch.nn.modules.activation.ReLU' has changed. you can retrieve the original source code by accessing the object's source attribute or set `torch.nn.Module.dump_patches = True` and use the patch tool to revert the changes.
+  warnings.warn(msg, SourceChangeWarning)
+/root/miniconda3/envs/graff/lib/python3.10/site-packages/gym/logger.py:30: UserWarning: [33mWARN: Box bound precision lowered by casting to float32[0m
+  warnings.warn(colorize('%s: %s'%('WARN', msg % args), 'yellow'))
+/root/miniconda3/envs/graff/lib/python3.10/site-packages/gym/logger.py:30: UserWarning: [33mWARN: Box bound precision lowered by casting to float32[0m
+  warnings.warn(colorize('%s: %s'%('WARN', msg % args), 'yellow'))
+/root/miniconda3/envs/graff/lib/python3.10/site-packages/gym/logger.py:30: UserWarning: [33mWARN: Box bound precision lowered by casting to float32[0m
+  warnings.warn(colorize('%s: %s'%('WARN', msg % args), 'yellow'))
+/root/miniconda3/envs/graff/lib/python3.10/site-packages/gym/logger.py:30: UserWarning: [33mWARN: Box bound precision lowered by casting to float32[0m
+  warnings.warn(colorize('%s: %s'%('WARN', msg % args), 'yellow'))
+/root/miniconda3/envs/graff/lib/python3.10/site-packages/gym/logger.py:30: UserWarning: [33mWARN: Box bound precision lowered by casting to float32[0m
+  warnings.warn(colorize('%s: %s'%('WARN', msg % args), 'yellow'))
+/root/miniconda3/envs/graff/lib/python3.10/site-packages/gym/logger.py:30: UserWarning: [33mWARN: Box bound precision lowered by casting to float32[0m
+  warnings.warn(colorize('%s: %s'%('WARN', msg % args), 'yellow'))
+/root/miniconda3/envs/graff/lib/python3.10/site-packages/gym/logger.py:30: UserWarning: [33mWARN: Box bound precision lowered by casting to float32[0m
+  warnings.warn(colorize('%s: %s'%('WARN', msg % args), 'yellow'))
+/root/miniconda3/envs/graff/lib/python3.10/site-packages/gym/logger.py:30: UserWarning: [33mWARN: Box bound precision lowered by casting to float32[0m
+  warnings.warn(colorize('%s: %s'%('WARN', msg % args), 'yellow'))
+/root/miniconda3/envs/graff/lib/python3.10/site-packages/gym/logger.py:30: UserWarning: [33mWARN: Box bound precision lowered by casting to float32[0m
+  warnings.warn(colorize('%s: %s'%('WARN', msg % args), 'yellow'))
+/root/miniconda3/envs/graff/lib/python3.10/site-packages/gym/logger.py:30: UserWarning: [33mWARN: Box bound precision lowered by casting to float32[0m
+  warnings.warn(colorize('%s: %s'%('WARN', msg % args), 'yellow'))
+/root/miniconda3/envs/graff/lib/python3.10/site-packages/gym/logger.py:30: UserWarning: [33mWARN: Box bound precision lowered by casting to float32[0m
+  warnings.warn(colorize('%s: %s'%('WARN', msg % args), 'yellow'))
+/root/miniconda3/envs/graff/lib/python3.10/site-packages/gym/logger.py:30: UserWarning: [33mWARN: Box bound precision lowered by casting to float32[0m
+  warnings.warn(colorize('%s: %s'%('WARN', msg % args), 'yellow'))
+Process SpawnProcess-10:
+Process SpawnProcess-12:
+Process SpawnProcess-3:
+Process SpawnProcess-9:
+Process SpawnProcess-6:
+Process SpawnProcess-5:
+Process SpawnProcess-1:
+Process SpawnProcess-4:
+Process SpawnProcess-7:
+Process SpawnProcess-2:
+Process SpawnProcess-8:
+Process SpawnProcess-11:
+Updates 10, num timesteps 264000, FPS 585 
+ Last 10 training episodes: mean/median reward 5211.6/5628.8, min/max reward 2865.9/5756.8
+
+Updates 20, num timesteps 504000, FPS 530 
+ Last 10 training episodes: mean/median reward 5303.6/5628.8, min/max reward 3530.6/5736.7
+
+Updates 30, num timesteps 744000, FPS 513 
+ Last 10 training episodes: mean/median reward 5353.3/5604.0, min/max reward 3644.1/5743.5
+
+Updates 40, num timesteps 984000, FPS 505 
+ Last 10 training episodes: mean/median reward 5201.3/5628.9, min/max reward 3204.4/5746.7
+
+Best model found. Saving.
+Updates 50, num timesteps 1224000, FPS 499 
+ Last 10 training episodes: mean/median reward 5188.2/5619.3, min/max reward 3105.5/5753.9
+
+Updates 60, num timesteps 1464000, FPS 495 
+ Last 10 training episodes: mean/median reward 5227.1/5571.4, min/max reward 3274.0/5763.0
+
+Updates 70, num timesteps 1704000, FPS 492 
+ Last 10 training episodes: mean/median reward 5254.7/5617.8, min/max reward 4217.8/5757.2
+
+Updates 80, num timesteps 1944000, FPS 491 
+ Last 10 training episodes: mean/median reward 5026.9/5643.3, min/max reward 2580.5/5759.0
+
+Updates 90, num timesteps 2184000, FPS 490 
+ Last 10 training episodes: mean/median reward 4764.0/5064.8, min/max reward 2780.8/5738.5
+
+Best model found. Saving.
+Updates 100, num timesteps 2424000, FPS 489 
+ Last 10 training episodes: mean/median reward 5455.4/5675.4, min/max reward 4155.1/5749.0
+
+Updates 110, num timesteps 2664000, FPS 488 
+ Last 10 training episodes: mean/median reward 5405.5/5686.2, min/max reward 2905.0/5772.1
+
+Updates 120, num timesteps 2904000, FPS 487 
+ Last 10 training episodes: mean/median reward 5239.4/5637.0, min/max reward 3177.8/5765.2
+
+Updates 130, num timesteps 3144000, FPS 488 
+ Last 10 training episodes: mean/median reward 5431.9/5675.3, min/max reward 3469.6/5755.7
+
+Updates 140, num timesteps 3384000, FPS 489 
+ Last 10 training episodes: mean/median reward 5650.0/5693.1, min/max reward 5312.2/5763.3
+
+Best model found. Saving.
+Updates 150, num timesteps 3624000, FPS 489 
+ Last 10 training episodes: mean/median reward 5705.5/5721.4, min/max reward 5638.0/5761.6
+
+Updates 160, num timesteps 3864000, FPS 490 
+ Last 10 training episodes: mean/median reward 5412.0/5645.9, min/max reward 4523.6/5755.5
+
+Updates 170, num timesteps 4104000, FPS 490 
+ Last 10 training episodes: mean/median reward 5276.5/5699.3, min/max reward 2338.9/5757.9
+
+Updates 180, num timesteps 4344000, FPS 490 
+ Last 10 training episodes: mean/median reward 5556.7/5649.4, min/max reward 4519.9/5763.5
+
+Updates 190, num timesteps 4584000, FPS 490 
+ Last 10 training episodes: mean/median reward 5584.0/5695.3, min/max reward 4899.6/5776.0
+
+Best model found. Saving.
+Updates 200, num timesteps 4824000, FPS 490 
+ Last 10 training episodes: mean/median reward 5575.5/5692.4, min/max reward 4931.3/5761.1
+
+Updates 210, num timesteps 5064000, FPS 491 
+ Last 10 training episodes: mean/median reward 5344.2/5641.3, min/max reward 3990.2/5742.7
+
+Updates 220, num timesteps 5304000, FPS 491 
+ Last 10 training episodes: mean/median reward 5713.5/5734.1, min/max reward 5646.7/5772.3
+
+Updates 230, num timesteps 5544000, FPS 491 
+ Last 10 training episodes: mean/median reward 5244.2/5525.7, min/max reward 3437.9/5769.9
+
+Updates 240, num timesteps 5784000, FPS 491 
+ Last 10 training episodes: mean/median reward 5571.0/5684.8, min/max reward 4967.7/5778.3
+
+Updates 250, num timesteps 6024000, FPS 491 
+ Last 10 training episodes: mean/median reward 5229.6/5691.1, min/max reward 2934.6/5756.5
+
+Updates 260, num timesteps 6264000, FPS 491 
+ Last 10 training episodes: mean/median reward 5570.6/5709.0, min/max reward 4631.5/5770.7
+
+Updates 270, num timesteps 6504000, FPS 492 
+ Last 10 training episodes: mean/median reward 5652.3/5711.3, min/max reward 5062.5/5785.4
+
+Updates 280, num timesteps 6744000, FPS 492 
+ Last 10 training episodes: mean/median reward 5474.2/5663.6, min/max reward 4362.3/5769.7
+
+Updates 290, num timesteps 6984000, FPS 492 
+ Last 10 training episodes: mean/median reward 5694.8/5696.9, min/max reward 5582.9/5778.1
+
+Updates 300, num timesteps 7224000, FPS 492 
+ Last 10 training episodes: mean/median reward 5625.7/5692.3, min/max reward 5227.1/5770.3
+
+Updates 310, num timesteps 7464000, FPS 492 
+ Last 10 training episodes: mean/median reward 5715.9/5744.6, min/max reward 5582.3/5769.7
+
+Updates 320, num timesteps 7704000, FPS 492 
+ Last 10 training episodes: mean/median reward 5345.8/5708.4, min/max reward 2650.2/5778.4
+
+Updates 330, num timesteps 7944000, FPS 492 
+ Last 10 training episodes: mean/median reward 5608.6/5706.4, min/max reward 4817.4/5798.8
+
+Updates 340, num timesteps 8184000, FPS 492 
+ Last 10 training episodes: mean/median reward 5707.9/5705.1, min/max reward 5511.4/5792.7
+
+Best model found. Saving.
+Updates 350, num timesteps 8424000, FPS 492 
+ Last 10 training episodes: mean/median reward 5655.4/5704.4, min/max reward 5158.3/5797.1
+
+Updates 360, num timesteps 8664000, FPS 492 
+ Last 10 training episodes: mean/median reward 5635.2/5679.0, min/max reward 5348.7/5771.0
+
+Updates 370, num timesteps 8904000, FPS 492 
+ Last 10 training episodes: mean/median reward 5589.7/5695.6, min/max reward 5160.5/5778.4
+
+Updates 380, num timesteps 9144000, FPS 492 
+ Last 10 training episodes: mean/median reward 5689.8/5705.4, min/max reward 5600.3/5719.7
+
+Updates 390, num timesteps 9384000, FPS 492 
+ Last 10 training episodes: mean/median reward 5650.2/5712.3, min/max reward 5257.9/5790.0
+
+Updates 400, num timesteps 9624000, FPS 493 
+ Last 10 training episodes: mean/median reward 5666.1/5711.0, min/max reward 5293.3/5793.4
+
+Updates 410, num timesteps 9864000, FPS 493 
+ Last 10 training episodes: mean/median reward 5675.1/5702.4, min/max reward 5342.2/5778.0
+
+Traceback (most recent call last):
+  File "/root/miniconda3/envs/graff/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/root/miniconda3/envs/graff/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/root/code/Optimization-of-Dexterous-Manipulator-Reinforcement-Learning-Grasping-Tasks/baselines_graff/baselines/common/vec_env/shmem_vec_env.py", line 123, in _subproc_worker
+    cmd, data = pipe.recv()
+  File "/root/miniconda3/envs/graff/lib/python3.10/multiprocessing/connection.py", line 250, in recv
+    buf = self._recv_bytes()
+  File "/root/miniconda3/envs/graff/lib/python3.10/multiprocessing/connection.py", line 414, in _recv_bytes
+    buf = self._recv(4)
+  File "/root/miniconda3/envs/graff/lib/python3.10/multiprocessing/connection.py", line 383, in _recv
+    raise EOFError
+EOFError
+Traceback (most recent call last):
+  File "/root/miniconda3/envs/graff/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/root/miniconda3/envs/graff/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/root/code/Optimization-of-Dexterous-Manipulator-Reinforcement-Learning-Grasping-Tasks/baselines_graff/baselines/common/vec_env/shmem_vec_env.py", line 123, in _subproc_worker
+    cmd, data = pipe.recv()
+  File "/root/miniconda3/envs/graff/lib/python3.10/multiprocessing/connection.py", line 250, in recv
+    buf = self._recv_bytes()
+  File "/root/miniconda3/envs/graff/lib/python3.10/multiprocessing/connection.py", line 414, in _recv_bytes
+    buf = self._recv(4)
+  File "/root/miniconda3/envs/graff/lib/python3.10/multiprocessing/connection.py", line 383, in _recv
+    raise EOFError
+EOFError
+Traceback (most recent call last):
+Found 3 GPUs for rendering. Using device 0.

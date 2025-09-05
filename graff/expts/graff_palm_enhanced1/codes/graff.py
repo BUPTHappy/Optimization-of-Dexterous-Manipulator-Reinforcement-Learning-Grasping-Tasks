@@ -206,115 +206,52 @@ class GraffV0(mujoco_env.MujocoEnv, utils.EzPickle):
 
     def get_palm_orientation_reward(self):
         """
-        改进的自适应手掌朝向奖励函数
-        根据物体的朝向和位置动态调整手掌姿态，实现智能抓取
+        修正版虎口朝上奖励: 基于实际测试结果的坐标系定义
+        防止手掌倒置，确保正确的抓取姿势
         """
-        # 获取手掌和物体的位置、朝向信息
+        # 获取手掌位置和旋转矩阵
         palm_pos = self.data.site_xpos[self.S_grasp_sid].ravel()
         palm_rotmat = self.data.site_xmat[self.S_grasp_sid].reshape(3, 3)
         obj_pos = self.data.body_xpos[self.obj_bid].ravel()
-        obj_rotmat = self.data.body_xmat[self.obj_bid].reshape(3, 3)
         
-        # 获取手掌坐标系的轴向量
-        palm_x = palm_rotmat[:, 0]  # 手掌X轴
-        palm_y = palm_rotmat[:, 1]  # 手掌Y轴
-        palm_z = palm_rotmat[:, 2]  # 手掌Z轴（手掌法向量）
+        # 获取手掌坐标系的轴
+        palm_x = palm_rotmat[:, 0]  # X轴
+        palm_y = palm_rotmat[:, 1]  # Y轴  
+        palm_z = palm_rotmat[:, 2]  # Z轴
         
-        # 获取物体坐标系的轴向量
-        obj_x = obj_rotmat[:, 0]
-        obj_y = obj_rotmat[:, 1] 
-        obj_z = obj_rotmat[:, 2]
+        # 基于测试结果：正常情况下palm_z的Z分量在0.01-0.04之间
+        # 这表明手掌主要在水平面内，Z轴不是向上的
+        z_component = palm_z[2]
         
-        # 计算从手掌到物体的向量
+        # 主要约束：防止手掌倒置
+        if z_component < -0.3:      # 严重向下倒置，重罚
+            orientation_reward = -2.0
+        elif z_component < -0.1:    # 轻微向下，轻罚
+            orientation_reward = -0.5
+        elif -0.1 <= z_component <= 0.1:  # 理想范围（基于测试数据）
+            orientation_reward = 1.0
+        elif 0.1 < z_component <= 0.3:    # 轻微向上，可接受
+            orientation_reward = 0.7
+        else:                       # 过度向上，轻罚
+            orientation_reward = 0.3
+        
+        # 次要约束：虎口方向应该朝向物体
         palm_to_obj = obj_pos - palm_pos
         distance = np.linalg.norm(palm_to_obj)
-        
-        total_reward = 0.0
         
         if distance > 1e-6:
             palm_to_obj_unit = palm_to_obj / distance
             
-            # 1. 基础朝向约束：防止手掌严重倒置
-            z_component = palm_z[2]
-            if z_component < -0.5:  # 严重倒置
-                orientation_penalty = -5.0
-            elif z_component < -0.2:  # 轻微倒置
-                orientation_penalty = -2.0
-            else:
-                orientation_penalty = 0.0
+            # 尝试X轴作为虎口方向（需要通过训练验证）
+            tiger_mouth_alignment = np.dot(palm_x, palm_to_obj_unit)
+            tiger_mouth_reward = max(0.0, tiger_mouth_alignment)
             
-            # 2. 自适应虎口朝向：根据物体形状调整
-            if self.obj_name in ['hammer']:
-                # 对于锤子，虎口应该朝向锤柄方向
-                # 假设物体的Y轴是锤柄方向
-                handle_alignment = max(abs(np.dot(palm_x, obj_y)), abs(np.dot(palm_y, obj_y)))
-                adaptive_reward = 3.0 * handle_alignment
-                
-            elif self.obj_name in ['knife']:
-                # 对于刀子，手掌应该与刀柄对齐
-                blade_alignment = max(abs(np.dot(palm_x, obj_x)), abs(np.dot(palm_y, obj_x)))
-                adaptive_reward = 3.0 * blade_alignment
-                
-            elif self.obj_name in ['mug', 'teapot']:
-                # 对于杯子、茶壶等，虎口应该朝向把手
-                handle_alignment = max(abs(np.dot(palm_x, obj_y)), abs(np.dot(palm_y, obj_y)))
-                adaptive_reward = 2.5 * handle_alignment
-                
-            elif self.obj_name in ['pan']:
-                # 对于平底锅，虎口应该朝向把手方向
-                handle_alignment = max(abs(np.dot(palm_x, obj_y)), abs(np.dot(palm_y, obj_y)))
-                adaptive_reward = 3.0 * handle_alignment
-                
-            else:
-                # 默认情况：虎口朝向物体
-                approach_alignment = max(0.0, np.dot(palm_x, palm_to_obj_unit))
-                adaptive_reward = 2.0 * approach_alignment
-            
-            # 3. 距离相关的朝向调整 - 更强的权重
-            if distance < 0.05:  # 非常接近
-                distance_weight = 5.0
-            elif distance < 0.1:  # 接近
-                distance_weight = 3.0
-            elif distance < 0.2:  # 中等距离
-                distance_weight = 2.0
-            else:  # 远距离
-                distance_weight = 1.0
-            
-            # 4. 抓取角度奖励 - 鼓励合适的抓取角度
-            # 手掌法向量与物体表面的角度应该合适
-            surface_angle = np.dot(palm_z, obj_z)
-            if abs(surface_angle) < 0.5:  # 接近垂直，适合抓取
-                angle_reward = 2.0 * (0.5 - abs(surface_angle))
-            else:
-                angle_reward = 0.0
-            
-            # 5. 手掌旋转一致性奖励
-            # 鼓励手掌保持相对稳定的旋转
-            if hasattr(self, 'prev_palm_rotmat'):
-                rotation_consistency = np.trace(np.dot(palm_rotmat.T, self.prev_palm_rotmat)) / 3.0
-                consistency_reward = max(0.0, rotation_consistency - 0.8) * 2.0
-            else:
-                consistency_reward = 0.0
-            self.prev_palm_rotmat = palm_rotmat.copy()
-            
-            # 综合奖励计算 - 增加权重
-            total_reward = (
-                orientation_penalty +  # 防止倒置（负奖励）
-                distance_weight * adaptive_reward +  # 自适应朝向（主要奖励）
-                angle_reward +  # 抓取角度奖励
-                consistency_reward  # 旋转一致性奖励
-            )
-        
+            # 综合奖励：主要防止倒置，次要考虑虎口朝向
+            total_reward = 0.8 * orientation_reward + 0.2 * tiger_mouth_reward
         else:
-            # 距离太近时的简单约束
-            z_component = palm_z[2]
-            if z_component < -0.3:
-                total_reward = -3.0
-            else:
-                total_reward = 1.0
+            total_reward = orientation_reward
         
-        # 限制奖励范围，但允许更大的奖励值
-        return np.clip(total_reward, -5.0, 5.0)
+        return np.clip(total_reward, -2.0, 1.0)
 
     #执行机器人的一个动作并给出反馈
     def step(self, a):
